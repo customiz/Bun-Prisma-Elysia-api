@@ -1,0 +1,19 @@
+docker run --name mysql-server -e MYSQL_ROOT_PASSWORD=root -p 3306:3306 --network bridge -d mysql
+
+docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' mysql-server
+
+docker run --name phpmyadmin-server -d --link mysql-server:db -p 8080:80 phpmyadmin
+
+bun add prisma
+
+bunx prisma init --datasource-provider mysql
+
+bunx prisma generate
+
+bunx prisma migrate dev
+
+bunx prisma db seed
+
+http://localhost:3000/search/movie?q=avatar 
+
+http://localhost:3000/title/2

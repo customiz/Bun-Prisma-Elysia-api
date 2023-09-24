@@ -1,32 +1,122 @@
 import { Elysia, t } from "elysia";
+import { PrismaClient } from "@prisma/client";
+
+//const prisma = new PrismaClient()
+const setup = (app: Elysia) => app.decorate('db', new PrismaClient())
 
 const app = new Elysia()
+
+  .use(setup)
+
+
   .get("/", () => "Hello Elysia")
   .group("/search", (app) => {
     return app
+      .get("/", async ({ query, db }) => db.movie.findMany())
       .guard({
         query: t.Object({
           q: t.String(),
         }),
       }, (app) =>
         app
-          .get("/", ({ query }) => `query: ${query.q}`)
-          .get("/movie", ({ query }) => `query: ${query.q}`)
-          .get("/tv", ({ query }) => `query: ${query.q}`)
-          .get("/person", ({ query }) => `query: ${query.q}`)
-          .get("/company", ({ query }) => `query: ${query.q}`)
-          .get("/episode", ({ query }) => `query: ${query.q}`)
-          .get("/review", ({ query }) => `query: ${query.q}`)
-          .get("/award", ({ query }) => `query: ${query.q}`)
+          .get("/movie", async ({ query, db }) => {
+            return db.movie.findMany({
+              where: {
+                title: {
+                  contains: query.q
+                }
+              }
+            })
+          })
+          .get("/tv", async ({ query, db }) => {
+            return db.movie.findMany({
+              where: {
+                title: {
+                  contains: query.q
+                },
+                type: "series"
+              }
+            })
+          })
+          .get("/person", async ({ query, db }) => {
+            return db.person.findMany({
+              where: {
+                name: {
+                  contains: query.q
+                }
+              }
+            })
+          })
+          .get("/episode", async ({ query, db }) => {
+            return db.episode.findMany({
+              where: {
+                title: {
+                  contains: query.q
+                }
+              }
+            })
+          })
+          .get("/review", async ({ query, db }) => {
+            return db.review.findMany({
+              where: {
+                comment: {
+                  contains: query.q
+                }
+              }
+            })
+          })
+          .get("/award", async ({ query, db }) => {
+            return db.award.findMany({
+              where: {
+                name: {
+                  contains: query.q
+                }
+              }
+            })
+          })
       );
   })
   .group("/title/:id", (app) => {
     return app
-      .get("/", ({ params }) => `id: ${params.id}`)
-      .get("/episodes", ({ params }) => `id: ${params.id}`)
-      .get("/cast", ({ params }) => `id: ${params.id}`)
-      .get("/reviews", ({ params }) => `id: ${params.id}`)
-      .get("/awards", ({ params }) => `id: ${params.id}`);
+      .get("/", async ({ params, db }) => {
+        return db.movie.findUnique({
+          where: {
+            id: parseInt(params.id, 10)
+          }
+        })
+      })
+      .get("/episodes", async ({ params, db }) => {
+        return db.episode.findMany({
+          where: {
+            movieId: parseInt(params.id, 10)
+          }
+        })
+      })
+      .get("/cast", async ({ params, db }) => {
+        return db.person.findMany({
+          where: {
+            movies: {
+              some: {
+                id: parseInt(params.id, 10)
+              }
+            }
+          }
+        })
+      })
+      .get("/reviews", async ({ params, db }) => {
+        return db.review.findMany({
+          where: {
+            movieId: parseInt(params.id, 10)
+          }
+        })
+      })
+      .get("/awards", async ({ params, db }) => {
+        return db.award.findMany({
+          where: {
+            movieId: parseInt(params.id, 10)
+          }
+        })
+      });
   })
   .listen(3000);
 
