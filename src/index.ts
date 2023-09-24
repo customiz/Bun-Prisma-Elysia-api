@@ -1,13 +1,16 @@
 import { Elysia, t } from "elysia";
 import { PrismaClient } from "@prisma/client";
+import { swagger } from '@elysiajs/swagger';
 
 //const prisma = new PrismaClient()
 const setup = (app: Elysia) => app.decorate('db', new PrismaClient())
 
 const app = new Elysia()
 
+  .use(swagger({
+    path: "/v1/swagger"
+  }))
   .use(setup)
-
 
   .get("/", () => "Hello Elysia")
   .group("/search", (app) => {
