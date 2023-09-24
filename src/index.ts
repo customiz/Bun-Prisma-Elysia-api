@@ -1,7 +1,10 @@
 import { Elysia, t } from "elysia";
 import { PrismaClient } from "@prisma/client";
 import { swagger } from '@elysiajs/swagger';
+import { logger, errorLogger } from "./logs";
 
+// Log an informational message
+logger.info('Elysia application starting...');
 //const prisma = new PrismaClient()
 const setup = (app: Elysia) => app.decorate('db', new PrismaClient())
 
@@ -23,15 +26,23 @@ const app = new Elysia()
       }, (app) =>
         app
           .get("/movie", async ({ query, db }) => {
-            return db.movie.findMany({
-              where: {
-                title: {
-                  contains: query.q
+            try {
+              logger.info(`Searching for movies with query: ${query.q}`);
+              return db.movie.findMany({
+                where: {
+                  title: {
+                    contains: query.q
+                  }
                 }
-              }
-            })
+              });
+            } catch (error: any) { // Specify 'error: any' as the error type
+              // Log the error using the error logger
+              errorLogger.error(`Error searching for movies: ${error.message}`);
+              throw error; // Rethrow the error to propagate it
+            }
           })
           .get("/tv", async ({ query, db }) => {
+            logger.info(`Searching for TV series with query: ${query.q}`);
             return db.movie.findMany({
               where: {
                 title: {

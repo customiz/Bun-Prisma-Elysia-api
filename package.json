@@ -12,7 +12,8 @@
     "@elysiajs/swagger": "^0.7.2",
     "@prisma/client": "5.3.1",
     "elysia": "latest",
-    "prisma": "^5.3.1"
+    "prisma": "^5.3.1",
+    "winston": "^3.10.0"
   },
   "devDependencies": {
     "bun-types": "latest"
